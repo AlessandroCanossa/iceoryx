@@ -79,7 +79,9 @@ SharedMemoryObject::SharedMemoryObject(const SharedMemory::Name_t& name,
             .length(memorySizeInBytes)
             .fileDescriptor(m_sharedMemory->getHandle())
             .accessMode(accessMode)
-            .flags(MemoryMapFlags::SHARE_CHANGES)
+            .flags((baseAddressHint && baseAddressHint.value() != nullptr)
+                       ? MemoryMapFlags::SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT
+                       : MemoryMapFlags::SHARE_CHANGES)
             .offset(0)
             .create()
             .and_then([this](auto& memoryMap) { m_memoryMap.emplace(std::move(memoryMap)); })

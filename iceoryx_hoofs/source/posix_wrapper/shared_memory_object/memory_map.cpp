@@ -19,6 +19,7 @@
 #include "iceoryx_hoofs/posix_wrapper/posix_call.hpp"
 
 #include <bitset>
+#include <cerrno>
 
 namespace iox
 {

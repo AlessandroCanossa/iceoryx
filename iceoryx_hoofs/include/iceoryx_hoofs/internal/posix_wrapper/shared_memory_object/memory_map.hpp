@@ -24,6 +24,7 @@
 #include "iceoryx_hoofs/platform/mman.hpp"
 
 #include <cstdint>
+#include <sys/mman.h>
 
 namespace iox
 {
@@ -57,7 +58,7 @@ enum class MemoryMapFlags : int32_t
     PRIVATE_CHANGES = MAP_PRIVATE,
 
     /// @brief SHARED and enforce the base address hint
-    SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT = MAP_SHARED | MAP_FIXED,
+    SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT = MAP_SHARED | MAP_FIXED_NOREPLACE,
 
     /// @brief PRIVATE and enforce the base address hint
     PRIVATE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT = MAP_PRIVATE | MAP_FIXED,

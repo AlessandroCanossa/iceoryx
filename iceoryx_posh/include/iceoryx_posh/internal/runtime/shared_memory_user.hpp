@@ -22,12 +22,18 @@
 #include "iceoryx_hoofs/internal/posix_wrapper/shared_memory_object.hpp"
 #include "iceoryx_hoofs/internal/relocatable_pointer/base_relative_pointer.hpp"
 #include "iceoryx_posh/iceoryx_posh_types.hpp"
+#include <cstdint>
 
 
 namespace iox
 {
 namespace runtime
 {
+
+namespace internal
+{
+const uintptr_t MAX_ADDR = 0x7f0000000000;
+}
 /// @brief shared memory setup for the management segment user side
 class SharedMemoryUser
 {
@@ -48,6 +54,7 @@ class SharedMemoryUser
   private:
     cxx::optional<posix::SharedMemoryObject> m_shmObject;
     cxx::vector<posix::SharedMemoryObject, MAX_SHM_SEGMENTS> m_dataShmObjects;
+    uintptr_t m_currentAddr{internal::MAX_ADDR};
 };
 
 } // namespace runtime

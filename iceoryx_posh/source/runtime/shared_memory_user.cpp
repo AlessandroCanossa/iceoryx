@@ -18,6 +18,7 @@
 #include "iceoryx_posh/internal/runtime/shared_memory_user.hpp"
 #include "iceoryx_hoofs/cxx/convert.hpp"
 #include "iceoryx_hoofs/error_handling/error_handling.hpp"
+#include "iceoryx_hoofs/internal/posix_wrapper/system_configuration.hpp"
 #include "iceoryx_hoofs/posix_wrapper/posix_access_rights.hpp"
 #include "iceoryx_posh/internal/log/posh_logging.hpp"
 #include "iceoryx_posh/internal/mepoo/segment_manager.hpp"
@@ -31,11 +32,16 @@ SharedMemoryUser::SharedMemoryUser(const size_t topicSize,
                                    const rp::BaseRelativePointer::offset_t segmentManagerAddressOffset) noexcept
 {
     // create and map the already existing shared memory region
+    auto pageSize = posix::pageSize();
+    auto addr = m_currentAddr - topicSize;
+    addr -= (addr % pageSize);
+    m_currentAddr = addr;
+
     posix::SharedMemoryObject::create(roudi::SHM_NAME,
                                       topicSize,
                                       posix::AccessMode::READ_WRITE,
                                       posix::OpenMode::OPEN_EXISTING,
-                                      posix::SharedMemoryObject::NO_ADDRESS_HINT)
+                                      reinterpret_cast<void*>(addr))
         .and_then([this, segmentId, segmentManagerAddressOffset](auto& sharedMemoryObject) {
             rp::BaseRelativePointer::registerPtr(
                 segmentId, sharedMemoryObject.getBaseAddress(), sharedMemoryObject.getSizeInBytes());
@@ -57,14 +63,21 @@ void SharedMemoryUser::openDataSegments(const uint64_t segmentId,
     auto segmentManager = reinterpret_cast<mepoo::SegmentManager<>*>(ptr);
 
     auto segmentMapping = segmentManager->getSegmentMappings(posix::PosixUser::getUserOfCurrentProcess());
+
+    const auto pageSize = posix::pageSize();
+
     for (const auto& segment : segmentMapping)
     {
+        auto addr = m_currentAddr - segment.m_size;
+        addr -= (addr % pageSize);
+        m_currentAddr = addr;
+
         auto accessMode = segment.m_isWritable ? posix::AccessMode::READ_WRITE : posix::AccessMode::READ_ONLY;
         posix::SharedMemoryObject::create(segment.m_sharedMemoryName,
                                           segment.m_size,
                                           accessMode,
                                           posix::OpenMode::OPEN_EXISTING,
-                                          posix::SharedMemoryObject::NO_ADDRESS_HINT)
+                                          reinterpret_cast<void*>(addr))
             .and_then([this, &segment](auto& sharedMemoryObject) {
                 if (static_cast<uint32_t>(m_dataShmObjects.size()) >= MAX_SHM_SEGMENTS)
                 {
