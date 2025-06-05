@@ -20,6 +20,7 @@
 #include "test.hpp"
 
 #include <cstring>
+#include <cstdint>
 
 namespace
 {
