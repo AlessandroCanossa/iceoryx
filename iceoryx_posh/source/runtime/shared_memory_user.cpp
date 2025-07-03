@@ -20,9 +20,11 @@
 #include "iceoryx_posh/internal/mepoo/segment_manager.hpp"
 #include "iceoryx_posh/internal/posh_error_reporting.hpp"
 #include "iox/detail/convert.hpp"
+#include "iox/detail/system_configuration.hpp"
 #include "iox/logging.hpp"
 #include "iox/posix_user.hpp"
 #include "iox/scope_guard.hpp"
+#include <cstdint>
 
 namespace iox
 {
@@ -36,8 +38,15 @@ SharedMemoryUser::create(const DomainId domainId,
                          const uint64_t managementShmSize,
                          const UntypedRelativePointer::offset_t segmentManagerAddressOffset) noexcept
 {
+    uintptr_t currentAddr{internal::MAX_ADDR};
+    const auto pageSize = detail::pageSize();
+
     ShmVector_t shmSegments;
     ScopeGuard shmCleaner{[] {}, [&shmSegments] { SharedMemoryUser::destroy(shmSegments); }};
+
+    auto managementShmAddr = currentAddr - managementShmSize;
+    managementShmAddr -= (managementShmAddr % pageSize);
+    currentAddr = managementShmAddr;
 
     // open management segment
     auto shmOpen = openShmSegment(shmSegments,
@@ -46,6 +55,7 @@ SharedMemoryUser::create(const DomainId domainId,
                                   ResourceType::ICEORYX_DEFINED,
                                   {roudi::SHM_NAME},
                                   managementShmSize,
+                                  managementShmAddr,
                                   AccessMode::ReadWrite);
     if (shmOpen.has_error())
     {
@@ -59,6 +69,9 @@ SharedMemoryUser::create(const DomainId domainId,
     auto segmentMapping = segmentManager->getSegmentMappings(PosixUser::getUserOfCurrentProcess());
     for (const auto& segment : segmentMapping)
     {
+        auto segmentShmAddr = currentAddr - segment.m_size;
+        segmentShmAddr -= (segmentShmAddr % pageSize);
+        currentAddr = segmentShmAddr;
         if (static_cast<uint32_t>(shmSegments.size()) >= MAX_SHM_SEGMENTS)
         {
             return err(SharedMemoryUserError::TOO_MANY_SHM_SEGMENTS);
@@ -70,6 +83,7 @@ SharedMemoryUser::create(const DomainId domainId,
                                       ResourceType::USER_DEFINED,
                                       segment.m_sharedMemoryName,
                                       segment.m_size,
+                                      segmentShmAddr,
                                       segment.m_isWritable ? AccessMode::ReadWrite : AccessMode::ReadOnly);
         if (shmOpen.has_error())
         {
@@ -108,6 +122,7 @@ expected<void, SharedMemoryUserError> SharedMemoryUser::openShmSegment(ShmVector
                                                                        const ResourceType resourceType,
                                                                        const ShmName_t& shmName,
                                                                        const uint64_t shmSize,
+                                                                       const uintptr_t baseAddressHint,
                                                                        const AccessMode accessMode) noexcept
 {
     auto shmResult = PosixSharedMemoryObjectBuilder()
@@ -115,6 +130,7 @@ expected<void, SharedMemoryUserError> SharedMemoryUser::openShmSegment(ShmVector
                          .memorySizeInBytes(shmSize)
                          .accessMode(accessMode)
                          .openMode(OpenMode::OpenExisting)
+                         .baseAddressHint(reinterpret_cast<void*>(baseAddressHint))
                          .create();
 
     if (shmResult.has_error())

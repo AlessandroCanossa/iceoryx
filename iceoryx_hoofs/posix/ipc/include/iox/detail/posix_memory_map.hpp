@@ -58,7 +58,7 @@ enum class PosixMemoryMapFlags : int32_t
 
     /// @brief SHARED and enforce the base address hint
     // NOLINTNEXTLINE(hicpp-signed-bitwise) enum type is defined by POSIX, no logical fault
-    SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT = MAP_SHARED | MAP_FIXED,
+    SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT = MAP_SHARED | MAP_FIXED_NOREPLACE,
 
     /// @brief PRIVATE and enforce the base address hint
     // NOLINTNEXTLINE(hicpp-signed-bitwise) enum type is defined POSIX, no logical fault
