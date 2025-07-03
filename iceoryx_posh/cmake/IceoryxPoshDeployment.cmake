@@ -145,6 +145,11 @@ configure_option(
     DEFAULT_VALUE "iox1"
 )
 
+configure_option(
+    NAME IOX_MAX_ADDRESS_BITS
+    DEFAULT_VALUE 48
+)
+
 if(IOX_ROUDI_DEFAULT_MONITORING_MODE)
     set(IOX_ROUDI_DEFAULT_MONITORING_MODE_ON true)
 else()

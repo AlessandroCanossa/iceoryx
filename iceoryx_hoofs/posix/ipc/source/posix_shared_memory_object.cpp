@@ -119,7 +119,9 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
                          .length(realSize)
                          .fileDescriptor(sharedMemory->getHandle())
                          .accessMode(m_accessMode)
-                         .flags(detail::PosixMemoryMapFlags::SHARE_CHANGES)
+                         .flags((m_baseAddressHint && m_baseAddressHint.value() != nullptr)
+                                    ? detail::PosixMemoryMapFlags::SHARE_CHANGES_AND_FORCE_BASE_ADDRESS_HINT
+                                    : detail::PosixMemoryMapFlags::SHARE_CHANGES)
                          .offset(0)
                          .create();
 
