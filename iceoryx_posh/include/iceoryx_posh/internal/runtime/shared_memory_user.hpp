@@ -24,11 +24,17 @@
 #include "iox/posix_shared_memory_object.hpp"
 #include "iox/relative_pointer.hpp"
 #include "iox/vector.hpp"
+#include <cstdint>
 
 namespace iox
 {
 namespace runtime
 {
+
+namespace internal
+{
+const uintptr_t MAX_ADDR = 0x7f0000000000;
+}
 
 enum class SharedMemoryUserError
 {
@@ -77,6 +83,7 @@ class SharedMemoryUser
                                                                 const ResourceType resourceType,
                                                                 const ShmName_t& shmName,
                                                                 const uint64_t shmSize,
+                                                                const uint64_t baseAddressHint,
                                                                 const AccessMode accessMode) noexcept;
 
 
