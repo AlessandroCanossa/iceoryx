@@ -38,7 +38,7 @@ SharedMemoryUser::create(const DomainId domainId,
                          const uint64_t managementShmSize,
                          const UntypedRelativePointer::offset_t segmentManagerAddressOffset) noexcept
 {
-    uintptr_t currentAddr{internal::MAX_ADDR};
+    uintptr_t currentAddr{detail::maxVMAddress()};
     const auto pageSize = detail::pageSize();
 
     ShmVector_t shmSegments;
