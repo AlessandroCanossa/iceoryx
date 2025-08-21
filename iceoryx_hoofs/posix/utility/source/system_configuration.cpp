@@ -18,8 +18,12 @@
 #include "iox/detail/system_configuration.hpp"
 
 #include "iox/assertions.hpp"
+#include "iox/file_reader.hpp"
 #include "iox/logging.hpp"
 #include "iox/posix_call.hpp"
+
+#include <cmath>
+#include <cstdint>
 
 namespace iox
 {
@@ -38,6 +42,35 @@ uint64_t pageSize() noexcept
                                      })
                                      .value()
                                      .value);
+}
+
+uint64_t maxVMAddress() noexcept
+{
+    constexpr std::string_view stackName = "[stack]";
+
+    iox::FileReader mapsFile("/proc/self/maps");
+
+    std::string line;
+    uint64_t maxBits = 0;
+    while (mapsFile.readLine(line))
+    {
+        if (std::string::npos == line.find(stackName, line.size() - stackName.size()))
+        {
+            continue;
+        }
+        size_t start = line.find_first_of('-') + 1;
+        size_t end = line.find_first_of(' ');
+        auto endAddr = "0x" + line.substr(start, end - start);
+        maxBits = static_cast<uint64_t>(std::ceil(std::log2(std::stoul(endAddr, nullptr, 16))));
+        IOX_LOG(Debug, "Max addr: " << maxBits);
+        break;
+    }
+
+    if (maxBits == 0)
+    {
+        IOX_PANIC("Max VM address detection failed");
+    }
+    return ((1ULL << maxBits) - (1ULL << (maxBits - 7)));
 }
 } // namespace detail
 } // namespace iox

@@ -31,12 +31,6 @@ namespace iox
 namespace runtime
 {
 
-namespace internal
-{
-constexpr uintptr_t MAX_ADDR =
-    (1UL << (iox::build::IOX_MAX_ADDRESS_BITS - 1)) - (1UL << (iox::build::IOX_MAX_ADDRESS_BITS - 8));
-}
-
 enum class SharedMemoryUserError
 {
     SHM_MAPPING_ERROR,
