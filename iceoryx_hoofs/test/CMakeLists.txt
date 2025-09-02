@@ -177,6 +177,7 @@ iox_add_executable( TARGET                  test_stress_spsc_sofi
 )
 
 add_subdirectory(stresstests/benchmark_optional_and_expected)
+add_subdirectory(multiprocess)
 
 target_compile_options(${PROJECT_PREFIX}_moduletests PRIVATE ${ICEORYX_TEST_CXX_FLAGS})
 target_compile_options(${PROJECT_PREFIX}_mocktests PRIVATE ${ICEORYX_TEST_CXX_FLAGS})
