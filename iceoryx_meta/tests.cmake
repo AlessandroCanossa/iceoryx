@@ -31,6 +31,9 @@ if (BUILD_TEST)
     ### Only hoofs has mock tests
     list(APPEND MOCKTEST_CMD COMMAND ./hoofs/test/hoofs_mocktests --gtest_filter=-*.TimingTest_* --gtest_output=xml:${CMAKE_BINARY_DIR}/testresults/hoofs_MockTestResults.xml)
 
+    ### Only hoofs has multiprocess tests
+    list(APPEND MULTIPROCESS_CMD COMMAND pytest)
+
     foreach(cmp IN ITEMS ${COMPONENTS})
         list(APPEND MODULETEST_CMD COMMAND ./${cmp}/test/${cmp}_moduletests --gtest_filter=-*.TimingTest_* --gtest_output=xml:${CMAKE_BINARY_DIR}/testresults/${cmp}_ModuleTestResults.xml)
     endforeach()
@@ -43,6 +46,7 @@ if (BUILD_TEST)
         ${MODULETEST_CMD}
         ${MOCKTEST_CMD}
         ${INTEGRATIONTEST_CMD}
+        ${MULTIPROCESS_CMD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -62,6 +66,12 @@ if (BUILD_TEST)
 
     add_custom_target( integration_tests
         ${INTEGRATIONTEST_CMD}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
+
+    add_custom_target( multiprocess_tests
+        ${MULTIPROCESS_CMD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
