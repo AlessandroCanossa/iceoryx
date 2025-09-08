@@ -46,6 +46,13 @@ uint64_t pageSize() noexcept
 
 uint64_t maxVMAddress() noexcept
 {
+    const char* vmaddr = std::getenv("IOX_MAX_VIRTUAL_MEMORY_ADDRESS");
+    if (vmaddr != nullptr)
+    {
+        IOX_LOG(Error, "exporting IOX_MAX_VIRTUAL_MEMORY_ADDRESS might break everything, do it at your own peril!");
+        return std::stoul(vmaddr);
+    }
+
     constexpr std::string_view stackName = "[stack]";
 
     iox::FileReader mapsFile("/proc/self/maps");
