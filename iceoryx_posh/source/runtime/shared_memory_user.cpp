@@ -38,15 +38,17 @@ SharedMemoryUser::create(const DomainId domainId,
                          const uint64_t managementShmSize,
                          const UntypedRelativePointer::offset_t segmentManagerAddressOffset) noexcept
 {
-    uintptr_t currentAddr{detail::maxVMAddress()};
+    uintptr_t currentAddr{detail::minVMAddress()};
+    std::cout << "Iceoryx min virtual address: 0x" << std::hex << currentAddr << std::dec << std::endl;
+
     const auto pageSize = detail::pageSize();
 
     ShmVector_t shmSegments;
     ScopeGuard shmCleaner{[] {}, [&shmSegments] { SharedMemoryUser::destroy(shmSegments); }};
 
-    auto managementShmAddr = currentAddr - managementShmSize;
-    managementShmAddr -= (managementShmAddr % pageSize);
-    currentAddr = managementShmAddr;
+    auto managementShmAddr = currentAddr;
+    managementShmAddr += (pageSize - ((managementShmAddr - 1) % pageSize) - 1);
+    currentAddr = managementShmAddr + managementShmSize;
 
     // open management segment
     auto shmOpen = openShmSegment(shmSegments,
@@ -69,9 +71,9 @@ SharedMemoryUser::create(const DomainId domainId,
     auto segmentMapping = segmentManager->getSegmentMappings(PosixUser::getUserOfCurrentProcess());
     for (const auto& segment : segmentMapping)
     {
-        auto segmentShmAddr = currentAddr - segment.m_size;
-        segmentShmAddr -= (segmentShmAddr % pageSize);
-        currentAddr = segmentShmAddr;
+        auto segmentShmAddr = currentAddr;
+        segmentShmAddr += (pageSize - ((segmentShmAddr - 1) % pageSize) - 1);
+        currentAddr = segmentShmAddr + segment.m_size;
         if (static_cast<uint32_t>(shmSegments.size()) >= MAX_SHM_SEGMENTS)
         {
             return err(SharedMemoryUserError::TOO_MANY_SHM_SEGMENTS);

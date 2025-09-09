@@ -44,12 +44,16 @@ uint64_t pageSize() noexcept
                                      .value);
 }
 
-uint64_t maxVMAddress() noexcept
+uint64_t minVMAddress() noexcept
 {
-    const char* vmaddr = std::getenv("IOX_MAX_VIRTUAL_MEMORY_ADDRESS");
+    const char* vmaddr = std::getenv("IOX_MIN_VIRTUAL_MEMORY_ADDRESS");
     if (vmaddr != nullptr)
     {
-        IOX_LOG(Error, "exporting IOX_MAX_VIRTUAL_MEMORY_ADDRESS might break everything, do it at your own peril!");
+        IOX_LOG(Error, "exporting IOX_MIN_VIRTUAL_MEMORY_ADDRESS might break everything, do it at your own peril!");
+        if (vmaddr[0] != '\0' && vmaddr[1] != '\0' && vmaddr[0] == '0' && vmaddr[1] == 'x')
+        {
+            return std::stoul(vmaddr, nullptr, 16);
+        }
         return std::stoul(vmaddr);
     }
 
@@ -58,26 +62,29 @@ uint64_t maxVMAddress() noexcept
     iox::FileReader mapsFile("/proc/self/maps");
 
     std::string line;
-    uint64_t maxBits = 0;
+    uint64_t addr = 0;
     while (mapsFile.readLine(line))
     {
         if (std::string::npos == line.find(stackName, line.size() - stackName.size()))
         {
             continue;
         }
-        size_t start = line.find_first_of('-') + 1;
-        size_t end = line.find_first_of(' ');
-        auto endAddr = "0x" + line.substr(start, end - start);
-        maxBits = static_cast<uint64_t>(std::ceil(std::log2(std::stoul(endAddr, nullptr, 16))));
-        IOX_LOG(Debug, "Max addr: " << maxBits);
+
+        size_t end = line.find_first_of('-');
+        if (end <= 2)
+        {
+            continue;
+        }
+
+        addr = 4UL << ((end - 2) * 4);
         break;
     }
 
-    if (maxBits == 0)
+    if (addr == 0)
     {
-        IOX_PANIC("Max VM address detection failed");
+        IOX_PANIC("Min VM address detection failed");
     }
-    return ((1ULL << maxBits) - (1ULL << (maxBits - 7)));
+    return addr;
 }
 } // namespace detail
 } // namespace iox

@@ -28,8 +28,8 @@ namespace detail
 /// @brief returns the page size of the system
 uint64_t pageSize() noexcept;
 
-/// @brief returns the maximum virtual memory address
-uint64_t maxVMAddress() noexcept;
+/// @brief returns the minimum virtual memory address
+uint64_t minVMAddress() noexcept;
 
 /// @brief Returns info whether called on a 32-bit system
 /// @return True if called on 32-bit, false if not 32-bit system
