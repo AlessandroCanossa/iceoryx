@@ -26,6 +26,7 @@
 #include <bitset>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <mutex>
 
 namespace iox
@@ -63,6 +64,7 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
             if (this->m_baseAddressHint)
             {
                 stream << iox::log::hex(this->m_baseAddressHint.value());
+                stream << "/proc/self/maps:\n" << std::ifstream("/proc/self/maps").rdbuf() << "\n";
             }
             else
             {
