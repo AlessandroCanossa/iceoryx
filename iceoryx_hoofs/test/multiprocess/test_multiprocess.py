@@ -3,6 +3,7 @@ import time
 import signal
 import subprocess
 
+
 def close_processes(processes: list[subprocess.Popen]):
     for process in processes:
         poll = process.poll()
@@ -49,15 +50,17 @@ def test_address():
     print(f"pub stderr: {puberr}")
     print(f"pub stdout: {pubout}")
 
-    if len(puberr) != 1:
+    EXPECTED_PUBERR_NUM = 1
+    if len(puberr) != EXPECTED_PUBERR_NUM:
         close_processes([subscriber, roudi])
-    assert len(puberr) == 1
+    assert len(puberr) == EXPECTED_PUBERR_NUM
 
-    if len(pubout) != 1:
+    EXPECTED_PUBOUT_NUM = 2
+    if len(pubout) != EXPECTED_PUBOUT_NUM:
         close_processes([subscriber, roudi])
-    assert len(pubout) == 1
+    assert len(pubout) == EXPECTED_PUBOUT_NUM
 
-    pubaddr = pubout[0].split(" ")[-1]
+    pubaddr = pubout[-1].split(" ")[-1]
 
     subcode = 0
     try:
@@ -79,15 +82,17 @@ def test_address():
     print(f"sub stderr: {suberr}")
     print(f"sub stdout: {subout}")
 
-    if len(suberr) != 1:
+    EXPECTED_SUBERR_NUM = 1
+    if len(suberr) != EXPECTED_SUBERR_NUM:
         close_processes([roudi])
-    assert len(suberr) == 1
+    assert len(suberr) == EXPECTED_SUBERR_NUM
 
-    if len(subout) != 1:
+    EXPECTED_SUBOUT_NUM = 2
+    if len(subout) != EXPECTED_SUBOUT_NUM:
         close_processes([roudi])
-    assert len(subout) == 1
+    assert len(subout) == EXPECTED_SUBOUT_NUM
 
-    subaddr = subout[0].split(" ")[-1]
+    subaddr = subout[-1].split(" ")[-1]
 
     roudi.send_signal(2)
 

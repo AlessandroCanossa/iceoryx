@@ -64,7 +64,9 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
             if (this->m_baseAddressHint)
             {
                 stream << iox::log::hex(this->m_baseAddressHint.value());
-                stream << "/proc/self/maps:\n" << std::ifstream("/proc/self/maps").rdbuf() << "\n";
+                std::ifstream mapsFile("/proc/self/maps");
+                std::cerr << "\n/proc/self/maps:\n" << mapsFile.rdbuf();
+                mapsFile.close();
             }
             else
             {
