@@ -4,7 +4,7 @@ import signal
 import subprocess
 
 
-def close_processes(processes: list[subprocess.Popen]):
+def close_processes(processes):
     for process in processes:
         poll = process.poll()
         if poll is None:
